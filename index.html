@@ -23,7 +23,7 @@ canvas{display:block;position:fixed;left:0;top:0;width:100%;height:100%}
 const c=document.getElementById('c'),g=c.getContext('2d'),$=id=>document.getElementById(id),R=Math.random,TAU=Math.PI*2,PI=Math.PI;
 const CL=(v,a,b)=>v<a?a:v>b?b:v,LERP=(a,b,k)=>a+(b-a)*k,PICK=a=>a[Math.floor(R()*a.length)],HYP=Math.hypot;
 const QS=new URLSearchParams(location.search);
-let DPR=1,CW=0,CH=0;function resizeCanvas(){DPR=Math.min(devicePixelRatio||1,3);CW=c.width=Math.round(innerWidth*DPR);CH=c.height=Math.round(innerHeight*DPR);if(window.onResize)onResize()}
+let SAFE={t:0,r:0,b:0,l:0};function readSafe(){try{if(window.__SAFE){SAFE=Object.assign({t:0,r:0,b:0,l:0},window.__SAFE);return}const d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';document.body.appendChild(d);const cs=getComputedStyle(d);SAFE={t:parseFloat(cs.paddingTop)||0,r:parseFloat(cs.paddingRight)||0,b:parseFloat(cs.paddingBottom)||0,l:parseFloat(cs.paddingLeft)||0};d.remove()}catch(e){}}let DPR=1,CW=0,CH=0;function resizeCanvas(){DPR=Math.min(devicePixelRatio||1,3);readSafe();CW=c.width=Math.round(innerWidth*DPR);CH=c.height=Math.round(innerHeight*DPR);if(window.onResize)onResize()}
 addEventListener('resize',resizeCanvas);
 // ---------- storage
 const ST={get(k,d){try{const v=localStorage.getItem(GAME_ID+':'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(GAME_ID+':'+k,JSON.stringify(v))}catch(e){}}};
@@ -374,7 +374,7 @@ function render(){menuBtns=[];g.setTransform(DPR,0,0,DPR,0,0);g.fillStyle='#0a16
  if(paused){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(0,0,LW,LH);g.fillStyle='#fff';g.font='bold 36px sans-serif';g.textAlign='center';g.fillText('PAUSED',200,340);g.font='15px sans-serif';g.fillText('Tap to resume',200,376)}
  g.restore()}
 // ===================== INPUT =====================
-function onResize(){VW=CW/DPR;VH=CH/DPR;SC=Math.min(VW/LW,VH/LH);OXs=(VW-LW*SC)/2;OYs=(VH-LH*SC)/2}
+function onResize(){VW=CW/DPR;VH=CH/DPR;const aw=VW-SAFE.l-SAFE.r,ah=VH-SAFE.t-SAFE.b;SC=Math.min(aw/LW,ah/LH);OXs=SAFE.l+(aw-LW*SC)/2;OYs=SAFE.t+(ah-LH*SC)/2}
 function toL(px,py){return[(px-OXs)/SC,(py-OYs)/SC]}
 function setArc(y){aim.el=CL(BC.ELMIN+(1-(y-150)/300)*(BC.ELMAX-BC.ELMIN),BC.ELMIN,BC.ELMAX);aim.el=Math.round(aim.el)}
 function setPull(x,y){let dx=x-aim.pull.sx,dy=y-aim.pull.sy;const d=Math.hypot(dx,dy),mx=130;if(d>mx){dx*=mx/d;dy*=mx/d}aim.pull.dx=dx;aim.pull.dy=Math.max(-20,dy);const pw=CL(Math.max(0,aim.pull.dy)/mx,0,1);
