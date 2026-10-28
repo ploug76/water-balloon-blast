@@ -360,8 +360,10 @@ function drawSling(back){const s=cam.s;const[bx,by]=W2S(0,0),[lx,ly]=W2S(-.38,1.
  g.strokeStyle='#5a2a1a';g.lineWidth=Math.max(2,.08*s);g.beginPath();g.moveTo(lx,ly);g.lineTo(pp[0],pp[1]);g.stroke();g.strokeStyle='#7a4f2a';g.lineCap='round';g.lineWidth=Math.max(5,.22*s);g.beginPath();g.moveTo(fx,fy);g.lineTo(lx,ly);g.stroke();
  // waiting balloons
  if(PORT())return;for(let i=1;i<S.queue.length;i++){const k=S.queue[i],r=WB.BAL[k].r;const[x,y]=W2S(-1-i*.75,r*1.1);balloon(x,y,r*s*1.15,k,Math.sin(GT*2+i)*.1)}}
-function pouch(){const[sx,sy]=W2S(WB.SLING.x,WB.SLING.y);if(pull&&pull.on){if(pull.cancel||pull.p<CANCELP)return[sx,sy];const d=Math.min(pull.d,PULLPX()),k=d/PULLPX()*Math.max(1.35*cam.s,PULLPX()*.6);return[sx-Math.cos(pull.a)*k,sy+Math.sin(pull.a)*k]}return[sx,sy]}
+function pouch(){const[sx,sy]=W2S(WB.SLING.x,WB.SLING.y);if(pull&&pull.on){if(pull.cancel||pull.p<CANCELP)return[sx,sy];const d=Math.min(pull.d/FULLPX(pull.a,pull.sx,pull.sy),1)*PULLPX(),k=d/PULLPX()*Math.max(1.35*cam.s,PULLPX()*.6);return[sx-Math.cos(pull.a)*k,sy+Math.sin(pull.a)*k]}return[sx,sy]}
 function PULLPX(){return CL(Math.min(VW,VH)*.26,90,190)}
+// v9: full pull never needs the finger past the screen edge (portrait: sling sits near the left edge)
+function FULLPX(a,sx,sy){const c=Math.cos(a),s=Math.sin(a);let r=1e9;if(c>.01)r=Math.min(r,(sx-6)/c);if(s>.01)r=Math.min(r,(VH-6-sy)/s);return CL(Math.min(PULLPX(),r*.97),48,PULLPX())}
 const CANCELP=.15,MINP=.2;const effP=p=>Math.max(MINP,p);
 function drawPreview(){if(!pull||!pull.on)return;const[px,py]=W2S(WB.SLING.x,WB.SLING.y);if(pull.cancel||pull.p<CANCELP){if(pull.d>18){const m=pull.cancel?'Pull back, not forward':'Pull farther to throw';const w=Math.min(250,VW-20);const bx=CL(px-w/2,10,VW-w-10),by=Math.max(hudBottom()+8,py-110);g.fillStyle='rgba(0,0,0,.6)';rrect(bx,by,w,40,12);g.fill();txt(m,bx+w/2,by+26,16,'#fff','center')}return}
  const v=WB.launchVel(pull.a,effP(pull.p));let x=WB.SLING.x,y=WB.SLING.y,vx=v.x,vy=v.y,dist=0,lastX=x,lastY=y;const DT2=WB.DT;let i=0;
@@ -441,7 +443,7 @@ c.addEventListener('pointerdown',e=>{A();if(panelOpen)return;const x=e.clientX,y
  if(state=='aim'&&MAP&&x>=MAP.x&&x<=MAP.x+MAP.w&&y>=MAP.y-8&&y<=MAP.y+MAP.h+8){ptr=e.pointerId;pan={map:1};mapPan(x);return}
  if(state=='aim'&&S.queue.length){const[px,py]=W2S(WB.SLING.x,WB.SLING.y);const gr=Math.max(70,1.6*cam.s);ptr=e.pointerId;try{c.setPointerCapture(e.pointerId)}catch(_){}
   if(HYP(x-px,y-py)<gr){if(overview){overview=false;layoutCam(false)}pull={on:true,sx:px,sy:py,a:0,p:0,d:0,lq:0};movePull(x,y);sStretch()}else pan={x,cx:camT.x}}});
-function movePull(x,y){const dx=x-pull.sx,dy=y-pull.sy;pull.d=HYP(dx,dy);pull.cancel=dx>Math.max(14,PULLPX()*.12);pull.a=CL(Math.atan2(dy,-Math.min(dx,-1e-3)),-.45,1.5);pull.p=pull.cancel?0:CL(pull.d/PULLPX(),0,1);const q=Math.round(pull.p*8);if(q!=pull.lq){pull.lq=q;tone(200+pull.p*300,.03,'triangle',.04)}}
+function movePull(x,y){const dx=x-pull.sx,dy=y-pull.sy;pull.d=HYP(dx,dy);pull.cancel=dx>Math.max(14,PULLPX()*.12);pull.a=CL(Math.atan2(dy,-Math.min(dx,-1e-3)),-.45,1.5);pull.p=pull.cancel?0:CL(pull.d/FULLPX(pull.a,pull.sx,pull.sy),0,1);const q=Math.round(pull.p*8);if(q!=pull.lq){pull.lq=q;tone(200+pull.p*300,.03,'triangle',.04)}}
 function mapPan(sx){if(overview){overview=false;layoutCam(false)}const s=camT.s;camT.x=CL(MAP.toW(sx),aimX(s),maxCamX(s))}
 c.addEventListener('pointermove',e=>{if(e.pointerId!==ptr)return;if(pan&&pan.map&&MAP){mapPan(e.clientX);return}if(pull&&state=='aim')movePull(e.clientX,e.clientY);else if(pan&&state=='aim'){const s=camT.s;camT.x=CL(pan.cx-(e.clientX-pan.x)/s,overview?camT.x:aimX(s),overview?camT.x:maxCamX(s));if(!overview)cam.x=LERP(cam.x,camT.x,.5)}});
 function up(e){if(e.pointerId!==ptr)return;ptr=null;if(pull&&state=='aim'){const p=pull;if(p.cancel||p.p<CANCELP){pull=null;pan=null;return}fire(p.a,effP(p.p))}pull=null;pan=null}
