@@ -468,7 +468,7 @@ $('help').onclick=e=>{e.stopPropagation();const wasP=paused;if(!paused&&inPlay()
 <h3>Targets</h3><p>🥛 milk jugs · 🥫 soda cans · 🦆 rubber ducks · 🧙 garden gnomes · 🏰 sandcastles. Soak or knock them all out to win!</p>
 <h3>Forts</h3><p>📦 cardboard is soggy and weak · 🪵 wood · 🧊 glass shatters · 🟦 plastic crates are bouncy · 🧱 stone is tough. Splashes soak everything nearby.</p>
 <h3>Special balloons</h3><p>🟠 <b>Big</b>: a huge splash · 🟣 <b>Triple</b>: tap to split into 3 · 🔵 <b>Ice</b>: heavy, smashes through stone · 🟢 <b>Bouncy</b>: bounces before it pops.</p>
-<h3>Stars</h3><p>Every level was checked by a computer player. ★★★ = clear it with the fewest balloons (shown when you win). Spare balloons give 5,000 bonus points each.</p>`,()=>{if(!wasP&&paused)togglePause()})};
+<h3>Stars</h3><p>Every level was checked by a computer player. ★★★ = clear it with the fewest balloons (shown when you win). Spare balloons give 5,000 bonus points each.</p><h3 class="gp-help">🎮 Controller</h3><p class="gp-help">Stick moves the pointer. Hold A on the slingshot and move the stick to pull back, let go to launch. A or X triggers the balloon’s special in flight. Start pauses, Select mutes. Menus: D-pad to pick, A to select, B to go back.</p>`,()=>{if(!wasP&&paused)togglePause()})};
 // ---------- loop
 let lastT=0;function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-lastT)/1000||0);lastT=now;if(!paused&&!panelOpen){for(let k=0;k<speed;k++)update(dt)}render()}
 resizeCanvas();chrome(true);playSongOnTap();
@@ -744,4 +744,18 @@ window.__sampleLock={lock,get locked(){return locked},get used(){return used},C}
 #palbTabs button{min-height:48px!important;font-size:16px!important}
 #palbList li{min-height:30px;height:auto!important;font-size:16px!important}
 </style>
+<!-- gamepad:start -->
+<script src="gamepad.js?v=1"></script>
+<script>
+GamepadSupport.init({
+ keys:{x:'Space',y:'Space',start:'KeyP',back:'KeyM'},
+ menuKeys:{a:'Enter'},
+ ignoreSel:'#dock,#mute,#pause,#help,#inst,#ios,.tb,#dockHint',
+ backSel:'#pclose',
+ menu:function(){return !!document.querySelector('#palbOv.on,#smpLock.on')||panelOpen||paused||(state!=='aim'&&state!=='fly'&&state!=='settle'&&state!=='intro');},
+ cursor:function(){return !document.querySelector('#palbOv.on,#smpLock.on')&&!panelOpen&&!paused&&(state==='aim'||state==='fly'||state==='settle'||state==='intro');},
+ items:GamepadSupport.list(function(){return (document.querySelector('#palbOv.on,#smpLock.on')||panelOpen)?[]:menuBtns;})
+});
+</script>
+<!-- gamepad:end -->
 </body></html>
